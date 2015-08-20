@@ -96,7 +96,9 @@ if [ -e $route_file ]
 then
   route_table_id=$(cat $route_file)
   echo "Deleting route table $route_table_id"
-  while ! ec2-delete-route-table -region $region $route_table_id | grep -q 'true' 2>/dev/null; do sleep 1; done
+  if ! ec2-delete-route-table -region $region $route_table_id 2>&1 |  grep -q 'Invalid'; then
+    while ! ec2-delete-route-table -region $region $route_table_id | grep -q 'true' 2>/dev/null; do sleep 1; done
+  fi
   mv $route_file "${route_file}.bak"
 fi
 
