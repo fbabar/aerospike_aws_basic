@@ -1,7 +1,9 @@
 #!/bin/bash
 
+# Load configuration
 . ./build_config.sh
 
+# If there is a server (file with server instance id present)
 if [ -e $server_instance_file ]
 then
   server_instance_id=$(cat $server_instance_file)
@@ -15,6 +17,7 @@ then
   sleep 1
 fi
 
+# Cleanup any outstanding spot instance requests
 if [ -e $server_sir_file ]
 then
   server_sir_id=$(cat $server_sir_file)

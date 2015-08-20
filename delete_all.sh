@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Order is important
+
 # Delete client node(s)
 ./delete_client.sh
 

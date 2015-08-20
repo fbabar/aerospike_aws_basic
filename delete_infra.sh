@@ -1,13 +1,16 @@
 #!/bin/bash
 
+# Load configuration
 . ./build_config.sh
 
+# Load infrastructure identifiers if respective files are present
 vpc_id=$(cat $vpc_file > /dev/null 2>&1)
 subnet_id=$(cat $subnet_file > /dev/null 2>&1)
 security_group_id=$(cat $sg_file > /dev/null 2>&1)
 gw_id=$(cat $gw_file > /dev/null 2>&1)
 route_table_id=$(cat $route_file> /dev/null 2>&1)
 
+# Can't release infrastructure if server is still there
 if [ -e $server_instance_file ]
 then
   server_instance_id=$(cat $server_instance_file)
@@ -15,6 +18,15 @@ then
   exit 1
 fi
 
+# Can't release infra if there are outstanding spot instance requests
+if [ -e $server_sir_file ]
+then
+  sir_id=$(cat $server_sir_file)
+  echo "Unable to cleanup infra: Spot request $server_sir_id still outstanding"
+  exit 1
+fi
+
+# This should not be needed if server has been terminated
 if [ -e $eni_attachment_file ]
 then
   eni_attachment_array=( $(cat $eni_attachment_file) )
@@ -28,6 +40,7 @@ then
   mv $eni_attachment_file "${eni_attachment_file}.bak"
 fi
 
+# Release extra network interfaces
 if [ -e $eni_file ]
 then
   eni_id_array=( $(cat $eni_file) )
@@ -41,12 +54,9 @@ then
   mv $eni_file "${eni_file}.bak"
 fi
 
-if [ -e $server_sir_file ]
-then
-  sir_id=$(cat $server_sir_file)
-  echo "Unable to cleanup infra: Spot request $server_sir_id still outstanding"
-  exit 1
-fi
+# ==================== #
+# Start deleting infra #
+# ==================== #
 
 if [ -e $sg_file ]
 then
